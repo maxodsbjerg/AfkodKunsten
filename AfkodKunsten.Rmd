@@ -1,0 +1,128 @@
+---
+title: "Afkod Kunsten"
+author: "Max Odsbjerg Pedersen"
+date: "4/6/2022"
+output: html_document
+---
+The focal point of this little example is to proces an extract of the collection data from the National Gallery of Denmark. This collection is comprised of the museum’s digitally registered art works.
+
+Our extract is delivered through SMK’s Application Programming Interface(API). An API is in brief a way to let software talk to eachother - in this case the API let’s R on my computer get acess to SMK’s digitally registered art works. The API also lets us specify very precisely, what data we are interested in.
+
+Read more about the SMK-API here: https://www.smk.dk/article/smk-api/
+
+Read the more technical aspects af the SMK-API here: https://api.smk.dk/api/v1/docs#/
+
+The the following example will be processed in the software programme R, offering various methods for statistical analysis and graphic representation of the results. In R, one works with packages each adding numerous functionalities to the core of R-functions. The first step of the project is to load the relavant packages into R:
+
+```{r, message=FALSE}
+library(jsonlite)
+library(tidyverse)
+source("SMK_dataframe.R")
+```
+
+This example shows how to extract all the digitally registered paintings within SMK from the golden age period(1800 to 1850) that has an image which is in public domain. The data is delivered in JSON-format, which is a way of storing and sending data as text. JSON-data can be parsed into R using the fromJSON function. The data is parsed as a large list-structure, where we right away extracts the exact list that contains the art works:
+
+```{r}
+golden_paintings <- fromJSON("https://api.smk.dk/api/v1/art/search/?keys=*&range=[production_dates_start%3A{1800-01-01T00%3A00%3A00.000Z%3B1849-12-31T00%3A00%3A00.000Z}]&filters=[has_image:true],[object_names:maleri],[public_domain:true]&offset=0&rows=2000")
+
+golden_paintings$items -> golden_paintings
+```
+
+For further explanation of the JSON format see - https://www.w3schools.com/js/js_json_intro.asp
+
+Lets take a look at the first six data entries after we extracted the list from the initial response:
+```{r}
+golden_paintings %>% 
+  head()
+```
+By shuffling through the columns (use the little black arrow at the top of the data frame) we see that some of the rows contains data frames and lists within themselves - this dataframe is a complex one.\
+This is not the way I like to work - I like to have my data tidy and use the functions put at disposal in the R-library `tidyverse` . The tidy format is defined as:
+
+> In brief, when your data is tidy, each column is a variable, and each row is an observation. Tidy data is important because the consistent structure lets you focus your struggle on questions about the data, not fighting to get the data into the right form for different functions.
+
+[*R for Data Science*](https://r4ds.had.co.nz/introduction.html)
+
+# Tidying the data
+Since handling this complex dataframe would be the center of several workshops it self we have decide to give you a prewritten function that turns our 996 observation of 70 variable complex dataframe into a simple one of 996 observations of 15 variables. This in order to keep the focus of this workshop to introduce a way of interacting with digital collection. Just notice that we simplify the data alot in this step and that your idea for analysis probably is possibel with a different dataprocessing. But for now we use the predefined function `SMK_dataframe()`
+
+```{r}
+SMK_dataframe(golden_paintings) -> golden_paintings
+```
+
+# Examination
+
+Lets examine our new dataframe(Use the black arrow in the top right corner of the dataframe to leaf through the columns):
+```{r}
+golden_paintings %>% 
+  head()
+```
+By leafing through the columns we see that we now have one art piece pr. row. For each art piece we get the title, the creator, production_end and other information. This means we can venture on to start investigating and ask question to these paintings from the golden age.
+
+
+# Analysis
+
+## Who are the Artists? 
+One of the things we might want to know is which painter has the most art works in our data excerpt(Golden age painting with a digtal image connected to it, which is in public domain). We use the `count()` function to do this: 
+
+```{r}
+golden_paintings %>% 
+  count(creator_1, sort = TRUE)
+```
+
+## Let's focus on the exhibition-column
+Lets examine the exhibition column up close, selecting only the exhibitions, title and creator-column:
+```{r, }
+golden_paintings %>% 
+  select(exhibitions, title, creator_1)
+```
+
+So what we see here is that some of these rows has the value "<NULL>", which means the art work in question has not registered as been on exhibition. However a lot of the art works have been on exhibition. For example we see 7, *Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro* by Christen Købke has a data frame [16 x 4] in the art works row under exhibitions. This means that within this row there is a data frame consisting of 16 rows of 4 columns. Lets unwrap this row and see: 
+```{r}
+# 7 is the row number, exhibitions is the 13th column and [[1]] is for diving into the data frame
+golden_paintings[7, 13][[1]]
+```
+So what does this mean? It means that *Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro* has been on exhibition sixteen times and we get various information such as the name of the exhibition, when it began and where it was ("Naturens spegel / The Mirror of Nature/Verden som landskab", were shown in several venues). 
+
+Since the exhibition data is going to be central from here on, we need to change our understanding of the data a little bit. Right now our data consist of one art piece pr. row. We are going to change that now based on the data in `exhibitions`. Instead we want each row to be an instance of an art piece on display. In this new way of understanding the data an art piece can occur several times if it has been on display more than once. Take our example from before. *Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro*  will appear sixteen times in the data since it has been on display on sixteen occations.
+
+Transforming the data to this format is fairly easy in terms of R-code. We use the `unnest` function on the `exhibitions`-column, which creates a row for each exhibition while retaining all information from the other columns. Since we are changing the fundamental structure of the data we save it to a new dataframe:
+
+```{r}
+golden_paintings %>% 
+  unnest(exhibitions) %>% 
+  select(exhibition, everything()) -> golden_paintings_exh
+
+golden_paintings_exh
+```
+
+We observe that this new dataframe have 1582 rows. 
+
+Since the data now has a format where each instance of an art work on display has its own row, we can now start asking questions about the exhibitioning of the our period.
+
+# Analysis - The golden age on display
+
+## Which work has been displayed the most?
+
+Because the art pieces appears in the data for each of the times it has been on display it is possible to count the titles to find out which of the artpieces has been displayed the most. We need to count both title and creator_1, since titles arent unique (several artists has done a work called "Selfportrait":
+
+```{r}
+golden_paintings_exh %>% 
+  count(title, creator_1, sort = TRUE)
+```
+We see that our work from before, *Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro*, is on a first place!. 
+Let's visualise this result in order to gain a visual representation instead:
+
+```{r, message=FALSE}
+golden_paintings_exh %>% 
+  count(title, creator_1, sort = TRUE) %>% 
+  slice_max(n, n = 5) %>%
+  mutate(title = reorder(title, n)) %>% 
+  ggplot(aes(x = title, y = n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip() +
+      labs(x = "Title of art piece",
+      y = "Count",
+      title = "Count of times an art piece\nhas been on exhibition") + 
+  theme(axis.text.y = element_text(angle = 14, hjust = 1))
+```
