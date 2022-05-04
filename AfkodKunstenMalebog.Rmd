@@ -40,7 +40,7 @@ This is not the way I like to work - I like to have my data tidy and use the fun
 [*R for Data Science*](https://r4ds.had.co.nz/introduction.html)
 
 # Tidying the data
-Since handling this complex dataframe would be the center of several workshops it self we have decide to give you a prewritten function that turns our 996 observation of 70 variable complex dataframe into a simple one of 996 observations of 15 variables. This in order to keep the focus of this workshop to introduce a way of interacting with digital collection. Just notice that we simplify the data alot in this step and that your idea for analysis probably is possibel with a different dataprocessing. But for now we use the predefined function `SMK_dataframe()`
+Since handling this complex dataframe would be the center of several workshops it self we have decide to give you a prewritten function that turns our 996 observation of 70 variable complex dataframe into a simple one of 996 observations of 15 variables. This in order to keep the focus of this workshop to introduce a way of interacting with digital collection. Just notice that we simplify the data alot in this step and that your idea for analysis probably is possible with a different dataprocessing. But for now we use the predefined function `SMK_dataframe()`
 
 ```{r}
 
@@ -94,7 +94,7 @@ Since the data now has a format where each instance of an art work on display ha
 
 ## Which work has been displayed the most?
 
-Because the art pieces appears in the data for each of the times it has been on display it is possible to count the titles to find out which of the artpieces has been displayed the most. We need to count both title and creator_1, since titles arent unique (several artists has done a work called "Selfportrait":
+Because the art pieces appears in the data for each of the times it has been on display it is possible to count the titles to find out which of the artpieces has been displayed the most. We need to count both title and creator_1, since titles arent unique (several artists has done a work called "Selfportrait"):
 
 ```{r}
 
