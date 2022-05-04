@@ -4,7 +4,7 @@ author: "Max Odsbjerg Pedersen"
 date: "4/6/2022"
 output: html_document
 ---
-The focal point of this little example is to proces an extract of the collection data from the National Gallery of Denmark. This collection is comprised of the museum’s digitally registered art works.
+The focal point of this example is to proces an extract of the collection data from the National Gallery of Denmark. This collection is comprised of the museum’s digitally registered art works.
 
 Our extract is delivered through SMK’s Application Programming Interface(API). An API is in brief a way to let software talk to eachother - in this case the API let’s R on my computer get access to SMK’s digitally registered art works. The API also lets us specify very precisely, what data we are interested in.
 
@@ -88,7 +88,7 @@ Transforming the data to this format is fairly easy in terms of R-code. We use t
 
 We observe that this new dataframe have 1582 rows. 
 
-Since the data now has a format where each instance of an art work on display has its own row, we can now start asking questions about the exhibitioning of the our period.
+Since the data now has a format where each instance of an art work on display has its own row, we can now start asking questions about the exhibitioning of the period.
 
 # Analysis - The golden age on display
 
