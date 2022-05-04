@@ -6,7 +6,7 @@ output: html_document
 ---
 The focal point of this little example is to proces an extract of the collection data from the National Gallery of Denmark. This collection is comprised of the museum’s digitally registered art works.
 
-Our extract is delivered through SMK’s Application Programming Interface(API). An API is in brief a way to let software talk to eachother - in this case the API let’s R on my computer get acess to SMK’s digitally registered art works. The API also lets us specify very precisely, what data we are interested in.
+Our extract is delivered through SMK’s Application Programming Interface(API). An API is in brief a way to let software talk to eachother - in this case the API let’s R on my computer get access to SMK’s digitally registered art works. The API also lets us specify very precisely, what data we are interested in.
 
 Read more about the SMK-API here: https://www.smk.dk/article/smk-api/
 
