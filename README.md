@@ -2,6 +2,7 @@
 Material for the workshop Afkod Kunsten at Aarhus University Library Arts
 
 ## Links to resources for in-class and future reference
+* [Powerpoint for workshop](https://github.com/maxodsbjerg/AfkodKunsten/blob/main/Afkod%20Kunsten%20PP.pdf)
 * [Link to workshop survey](https://www.survey-xact.dk/LinkCollector?key=UADDX2NWLPCN)
 * [Dall.E2](https://openai.com/dall-e-2/) 
 * [Link to podcast - How museums can deepen engagement with audiences?](https://www.theheritagelab.in/museum-digital-audience-engagement/)
