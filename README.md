@@ -1,4 +1,4 @@
-# AfkodKunsten
+# Afkod Kunsten / Decode Art
 Material for the workshop Afkod Kunsten at Aarhus University Library Arts
 
 ## Links to resources for in-class and future reference
