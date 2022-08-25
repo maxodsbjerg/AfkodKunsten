@@ -2,13 +2,13 @@
 About the workshop: 
 Art and culture is increasingly digital - so must our methods and analytical apporaches. 
 
-How does a computer view a painting versus a human? 
+* How does a computer view a painting versus a human? 
 
-What is a pixel and an API?
+* What is a pixel and an API?
 
-What are the most popular colors used in paintings in the collections of the Danish National Gallery from 1800s?
+* What are the most popular colors used in paintings in the collections of the Danish National Gallery from 1800s?
 
-Which artworks have been exhibited the most and where? 
+* Which artworks have been exhibited the most and where? 
 
 These are some of the questions we discuss throughout or workshop. Throuhgout the course you will be introduced to digital collections as a cultural phenomenon, as well as practical ressources and methods for how you can use data- and metadata analysis in your work with art and collections.   
 
