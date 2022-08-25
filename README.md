@@ -1,5 +1,18 @@
 # Afkod Kunsten / Decode Art
-Material for the workshop Afkod Kunsten at Aarhus University Library Arts
+About the workshop: 
+Art and culture is increasingly digital - so must our methods and analytical apporaches. 
+
+How does a computer view a painting versus a human? 
+
+What is a pixel and an API?
+
+What are the most popular colors used in paintings in the collections of the Danish National Gallery from 1800s?
+
+Which artworks have been exhibited the most and where? 
+
+These are some of the questions we discuss throughout or workshop. Throuhgout the course you will be introduced to digital collections as a cultural phenomenon, as well as practical ressources and methods for how you can use data- and metadata analysis in your work with art and collections.   
+
+
 
 ## Links to resources for in-class and future reference
 * [Powerpoint for workshop](https://github.com/maxodsbjerg/AfkodKunsten/blob/main/Afkod%20Kunsten%20PP.pdf)
