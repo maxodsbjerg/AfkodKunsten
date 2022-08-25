@@ -5,6 +5,7 @@ Art and culture is increasingly digital - so must our methods and analytical app
 * How does a computer view a painting versus a human? 
 
 * What is a pixel and an API?
+[Trykklar fil-plakat til print-rettet.pdf](https://github.com/maxodsbjerg/AfkodKunsten/files/9424485/Trykklar.fil-plakat.til.print-rettet.pdf)
 
 * What are the most popular colors used in paintings in the collections of the Danish National Gallery from 1800s?
 
