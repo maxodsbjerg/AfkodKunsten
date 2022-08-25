@@ -10,7 +10,7 @@ Art and culture is increasingly digital - so must our methods and analytical app
 
 * Which artworks have been exhibited the most and where? 
 
-These are some of the questions we discuss throughout or workshop. Throuhgout the course you will be introduced to digital collections as a cultural phenomenon, as well as practical ressources and methods for how you can use data- and metadata analysis in your work with art and collections.   
+These are some of the questions we discuss throughout or workshop. Throughout the course you will be introduced to digital collections as a cultural phenomenon, as well as practical ressources and methods for how you can use data- and metadata analysis in your work with art and collections.   
 
 
 
