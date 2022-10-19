@@ -1,0 +1,370 @@
+---
+title: 'Hekse, farver og tal: Hvordan ser computeren billeder?'
+author: "Max Odsbjerg Pedersen"
+date: '2022-05-03'
+output: 
+    html_document:
+      df_print: paged
+      toc: true
+      toc_depth: 2
+      toc_float: true
+---
+
+
+
+```{r, message=FALSE}
+library(jsonlite)
+library(ggplot2)
+library(dplyr)
+library(tibble)
+library(tidyr)
+library(readr) 
+library(purrr)
+library(stringr) 
+library(forcats)
+library(wesanderson)
+library(magick)
+library(imager)
+library(colorfindr)
+library(scales)
+source("SMK_dataframe.R")
+```
+
+
+```{r}
+golden_paintings <- fromJSON("https://api.smk.dk/api/v1/art/search/?keys=*&range=[production_dates_start%3A{1800-01-01T00%3A00%3A00.000Z%3B1849-12-31T00%3A00%3A00.000Z}]&filters=[has_image:true],[object_names:maleri],[public_domain:true]&offset=0&rows=2000")
+
+golden_paintings$items -> golden_paintings
+```
+
+For further explanation of the JSON format see - https://www.w3schools.com/js/js_json_intro.asp
+
+Lets take a look at the first six data entries after we extracted the list from the initial response:
+```{r}
+golden_paintings %>% 
+  head()
+```
+By shuffling through the columns (use the little black arrow at the top of the data frame) we see that some of the rows contains data frames and lists within themselves - this dataframe is a complex one.\
+This is not the way I like to work - I like to have my data tidy and use the functions put at disposal in the R-library `tidyverse` . The tidy format is defined as:
+
+> In brief, when your data is tidy, each column is a variable, and each row is an observation. Tidy data is important because the consistent structure lets you focus your struggle on questions about the data, not fighting to get the data into the right form for different functions.
+
+[*R for Data Science*](https://r4ds.had.co.nz/introduction.html)
+
+# Tidying the data
+Since handling this complex dataframe would be the center of several workshops it self we have decide to give you a prewritten function that turns our 996 observation of 70 variable complex dataframe into a simple one of 996 observations of 15 variables. This in order to keep the focus of this workshop to introduce a way of interacting with digital collection. Just notice that we simplify the data alot in this step and that your idea for analysis probably is possibel with a different dataprocessing. But for now we use the predefined function `SMK_dataframe()`
+
+```{r}
+SMK_dataframe(golden_paintings) -> golden_paintings
+```
+
+
+# How does the computer understand pictures
+We now have the relevant data, but before we venture into digital analysis of images we need to  briefly address some key concepts that will help us understand what happens in the next steps.
+
+The first concepts might not come as a surprise for many: pixel. Digital pictures consist of pixels. The more pixel - the better the quality of the picture. Each pixel has a color. But what are colors to a computer? Most people know the primary colours as red, yellow and green. Some people might want to include green to the primary colours. This all depends on what colour theory they were taught in school. There are several colours theories around and especially if we include the historical ones. This rabbit hole of colour theories is without the scope of this project. Here we restrict ourselves to how the computer understands colors when it is going to show them on a screen. In these case the computer swears to the RGB color model. Here the computer creates a specific colour for a pixel by storing a numeric value for the Red- Green- and Blue-channel. These numerical values can appears in several forms of [representations](https://en.wikipedia.org/wiki/RGB_color_model#Numeric_representations), but here we will focus on the digital [8-bit](https://en.wikipedia.org/wiki/8-bit_computing) per channel representation. This means that each color channel can assume the value from 0 to 255.  
+Since it can be inconvenient to store and handle colours in triplets of numeric values we also have the [hexidecimal](https://en.wikipedia.org/wiki/Hexadecimal) representation of the RGB-colors. Many people might be familiar with hex colour codes, but never really thought about that they were representations of RGB-colour.  
+
+The color code for green could in the two formats would be like this:
+>RGB Decimal: 0, 255, 0
+
+>Hex:00ff00
+
+In a less generic example we demonstrate both pixels and color code in the visualisation beneath of the painting *Interiør med en ung pige, der fletter sit hår* by Anna Ancher:
+![Pixels and their colorcodes](a_ancher_girl_interior_pixel_color.png)
+
+So to sum up we now know the following about digital pictures: It consist of pixels that each stores numerical information of their colours. Next up we are going to extract the colours from a pictures and see which colours are predominant within a picture. We will both be handling RGB-decimal and hex colours codes. 
+
+# Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro	
+
+We know from AfkodKunsten.Rmd that *Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro* by Christen Købke is SMK's most exhibitioned golden age painting. So let's use this as a case. First we need to find the image thumbnail:
+```{r}
+golden_paintings %>% 
+  filter(title == "Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro") %>% 
+  select(title, image_thumbnail)
+```
+
+Next step is to let R read the thumbnail link to the particular picture
+
+```{r}
+view_dosseringen <- image_read("https://iip-thumb.smk.dk/iiif/jp2/KMSKMS359.tif.reconstructed.tif.jp2/full/!1024,/0/default.jpg")
+```
+
+
+Just writing the name of the new element will give us som metadata and let us see the actual picture
+```{r}
+view_dosseringen
+```
+
+Counting how many time colours appear. 16 millions possible colours - we need to simplfy. First by making the image smaller and second by reducing the colors to only 20. 
+
+```{r}
+view_dosseringen %>% 
+  image_resize("500") %>% 
+  image_quantize(max=20, colorspace="sRGB")
+```
+
+The next step is to convert the image into a different format:
+```{r}
+view_dosseringen %>% 
+  image_resize("500") %>% 
+  image_quantize(max=20, colorspace="sRGB") %>% 
+  magick2cimg()
+```
+
+It is a bit hard to see what difference this actually did. So let's save it to an element:
+```{r}
+view_dosseringen %>% 
+  image_resize("500") %>% 
+  image_quantize(max=20, colorspace="sRGB") %>% 
+  magick2cimg() -> view_dosseringen_img
+```
+
+This appears in the environment as a Large cimg consisting of 543000 elements. This is because all the pixels in our pictures is stored with the rgb-value. Remember that our picture right now is 500x362 pixels. So our picture consists of:
+```{r}
+500*362
+```
+181000 pixels! But each of these pixels will have three values with them, the red, green and blue value: 
+
+```{r}
+181000*3
+```
+So that's the reason our picture consists of 543000 elements. To better work with these values we will convert the view_dosseringen_img to a dataframe, where we get the one pixel per row with the coordinates and rgb-vaules as variables: 
+
+```{r}
+view_dosseringen_img %>% 
+  as.data.frame(wide = "c") %>% 
+  rename(R = c.1, G = c.2, B = c.3)
+```
+The next step is to convert the rgb-values to a hex-code in order to have a simpler representation of colors and one we can work with and visualise in R: 
+
+```{r}
+view_dosseringen_img %>% 
+  as.data.frame(wide = "c") %>% 
+  rename(R = c.1, G = c.2, B = c.3) %>% 
+  mutate(hex = rgb(R, G, B))
+```
+This makes it easy to count the most used colors in the picture:
+
+```{r}
+view_dosseringen_img %>% 
+  as.data.frame(wide = "c") %>% 
+  rename(R = c.1, G = c.2, B = c.3) %>% 
+  mutate(hex = rgb(R, G, B)) %>% 
+  count(hex, sort = TRUE)
+```
+But these hex codes are for machines and not human eyes! Lets visualise the dispersion of colors with colors!! First we save the above count to a new dataframe:
+```{r}
+view_dosseringen_img %>% 
+  as.data.frame(wide = "c") %>% 
+  rename(R = c.1, G = c.2, B = c.3) %>% 
+  mutate(hex = rgb(R, G, B)) %>% 
+  count(hex, sort = TRUE) -> dosseringen_color_count
+```
+
+
+
+```{r}
+DosseringenColour <-  dosseringen_color_count %>% 
+  pull(hex)
+names(DosseringenColour) <- dosseringen_color_count %>% 
+  pull(hex)
+
+
+dosseringen_color_count %>%
+mutate(hex = reorder(hex, n)) %>%
+ggplot(aes(x = hex, y = n, fill = hex)) +
+  geom_col() + 
+  scale_fill_manual(values = DosseringenColour) + 
+  coord_flip() +
+  labs(x = "Hex color",
+      y = "Count",
+      title = "Colour dispersion after resizing and image quantizing the painting\n*Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro*") + 
+  theme(axis.text.y = element_text(angle = 14, hjust = 1), legend.position="none")
+```
+
+```{r}
+PicToTible <- function(pic){
+  image_read(pic) %>% 
+    image_resize("500") %>% 
+    image_quantize(max = 10) %>% 
+    magick2cimg() %>% 
+    as.data.frame(wide = "c") %>% 
+    rename(R = c.1, G = c.2, B = c.3) %>% 
+    mutate(hex = rgb(R, G, B))
+}
+```
+
+
+
+
+
+```{r}
+PicToTible("https://iip-thumb.smk.dk/iiif/jp2/8g84mn026_KMSKMS402.tif.jp2/full/!1024,/0/default.jpg") %>% 
+  mutate(creator = "Lundbye, Johan Thomas", title = "Sjællandsk landskab. Åben egn i det nordlige Sjælland") -> landscape
+```
+
+```{r}
+PicToTible("https://iip-thumb.smk.dk/iiif/jp2/KMSKMS359.tif.reconstructed.tif.jp2/full/!1024,/0/default.jpg") %>% 
+  mutate(creator = "Købke, Christen", title = "Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro") -> dosseringen
+```
+
+
+```{r}
+comp_landscape_w_dossering <- bind_rows(dosseringen, landscape)
+```
+
+```{r}
+comp_landscape_w_dossering %>% 
+  count(title, hex, sort = TRUE) %>% 
+  group_by(title) %>% 
+  summarise(total = sum(n)) -> total_colors
+```
+
+```{r}
+comp_landscape_w_dossering %>% 
+  count(title, hex, sort = TRUE) %>% 
+  left_join(total_colors, by = "title") %>% 
+  mutate(freq = n / total) -> comp_freq
+```
+
+```{r}
+comp_freq %>% 
+  group_by(title) %>% 
+  summarise(freq_sum = sum(freq))
+```
+
+
+
+```{r}
+library(forcats)
+
+CompColour <-  comp_freq %>% 
+  pull(hex)
+names(CompColour) <- comp_freq %>% 
+  pull(hex)
+
+comp_freq %>%
+  group_by(title) %>%
+  slice_max(freq, n = 15) %>%
+  ungroup() %>%
+  ggplot(aes(freq, fct_reorder(hex, freq), fill = hex)) +
+  geom_col(show.legend = FALSE) +
+  scale_fill_manual(values = CompColour) + 
+  facet_wrap(~title, ncol = 2, scales = "free") +
+  labs(x = "freq", y = NULL) +
+  geom_curve(data = tibble(x = 1),
+             curvature = -.2,
+             arrow = arrow(length =
+                             unit(0.1,
+                                  "inches")),
+             x = 4550, xend = 5150,
+             y = 1.85, yend = 2.8,
+             )
+```
+```{r}
+dosseringen_mgck <- image_read("https://iip-thumb.smk.dk/iiif/jp2/KMSKMS359.tif.reconstructed.tif.jp2/full/!1024,/0/default.jpg") %>% image_resize("300") %>% image_quantize(max = 10)
+
+landscape_mgck <- image_read("https://iip-thumb.smk.dk/iiif/jp2/KMSKMS402.tif.jp2/full/!1024,/0/default.jpg") %>%  image_resize("300") %>% image_quantize(max = 10)
+
+img <- c(landscape_mgck, dosseringen_mgck)
+
+img <- image_scale(img, "300x300")
+
+image_append(image_scale(img, "x300"))
+```
+
+# Comparing entire ouevres 
+Who could be cool to compare: 
+
+```{r}
+golden_paintings %>% 
+  filter(!is.na(saturation)) %>% 
+  count(creator_1, sort = TRUE)
+```
+
+
+
+
+```{r}
+thumb_urls <- golden_paintings %>% 
+  filter(!is.na(saturation)) %>% 
+  filter(creator_1 == "Skovgaard, P.C.") %>%  
+  pull(image_thumbnail)
+
+picture_mgk <- NULL
+
+ouevre <- NULL
+
+for (url in thumb_urls) {
+  picture_mgk <- image_read(url) %>% 
+                    image_resize("500")
+  
+  ouevre <- append(ouevre, picture_mgk)
+}
+```
+
+
+```{r}
+ouevre
+```
+
+
+
+```{r}
+ouevre <- image_scale(ouevre, "300x300")
+
+image_append(image_scale(ouevre, "x300")) -> ouevre
+```
+
+
+```{r}
+ouevre
+```
+
+
+```{r}
+8244 * 300
+```
+
+
+```{r}
+ouevre %>% 
+    image_quantize(max = 20) %>% 
+    magick2cimg() %>% 
+    as.data.frame(wide = "c") %>% 
+    rename(R = c.1, G = c.2, B = c.3) %>% 
+    mutate(hex = rgb(R, G, B)) -> ouevre_colors
+```
+
+```{r}
+ouevre_colors %>% 
+  count(hex, sort = TRUE) -> ouevre_count
+```
+
+
+```{r}
+OuevreColour <-  ouevre_count %>% 
+  pull(hex)
+names(OuevreColour) <- ouevre_count %>% 
+  pull(hex)
+
+
+ouevre_count %>%
+mutate(hex = reorder(hex, n)) %>%
+ggplot(aes(x = hex, y = n, fill = hex)) +
+  geom_col() + 
+  scale_fill_manual(values = OuevreColour) + 
+  coord_flip() +
+  labs(x = "Hex color",
+      y = "Count",
+      title = "Ouevre of P.C. Skovgaard works within SMK") + 
+  theme(axis.text.y = element_text(angle = 14, hjust = 1), legend.position="none") 
+```
+
+
+
+
+
+
+
