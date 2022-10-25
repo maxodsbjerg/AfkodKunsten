@@ -1,4 +1,6 @@
 # Afkod Kunsten / Decode Art
+
+![](./graphics/a_ancher_girl_interior_pixel_color.png)
 About the workshop: 
 Art and culture is increasingly digital - so must our methods and analytical apporaches be! 
 
@@ -9,7 +11,7 @@ Art and culture is increasingly digital - so must our methods and analytical app
 
 These are some of the questions we discuss throughout or workshop. Throughout the course you will be introduced to digital collections as a cultural phenomenon, as well as practical ressources and methods for how you can use data- and metadata analysis in your work with art and collections.   
 
-![](https://raw.githubusercontent.com/maxodsbjerg/AfkodKunsten/main/count_of_golden_paintings_exhibition.png)
+![](./graphics/comparing_lundbye_koebke.png)
 
 
 ## Links to resources for in-class and future reference
