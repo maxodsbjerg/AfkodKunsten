@@ -14,14 +14,7 @@ output:
 
 ```{r, message=FALSE}
 library(jsonlite)
-library(ggplot2)
-library(dplyr)
-library(tibble)
-library(tidyr)
-library(readr) 
-library(purrr)
-library(stringr) 
-library(forcats)
+library(tidyverse)
 library(wesanderson)
 library(magick)
 library(imager)
@@ -84,46 +77,73 @@ golden_paintings %>%
   select(title, image_thumbnail)
 ```
 
-Next step is to let R read the thumbnail link to the particular picture
+Next step is to let R read the thumbnail link to the particular picture. Here we use the function `load.image()`, from the imager-package, which can read images into and can handle both path to images locally on your computer or an URL pointing to a picture, which is the case here: 
 
 ```{r}
-view_dosseringen <- image_read("https://iip-thumb.smk.dk/iiif/jp2/KMSKMS359.tif.reconstructed.tif.jp2/full/!1024,/0/default.jpg")
+view_dosseringen <- load.image("https://iip-thumb.smk.dk/iiif/jp2/KMSKMS359.tif.reconstructed.tif.jp2/full/!1024,/0/default.jpg")
 ```
 
 
-Just writing the name of the new element will give us som metadata and let us see the actual picture
+When we just write the name of the new element will give us som metadata 
 ```{r}
 view_dosseringen
 ```
+We see the dimensions of the image, the depth referes to how many layers there are in the picture. Is it above 1 the file is actually a video. The colour channels refers to the RGB-values explained earlier.
 
-Counting how many time colours appear. 16 millions possible colours - we need to simplfy. First by making the image smaller and second by reducing the colors to only 20. 
 
+To see the actual picture we need to plot it:
 ```{r}
-view_dosseringen %>% 
-  image_resize("500") %>% 
-  image_quantize(max=20, colorspace="sRGB")
+plot(view_dosseringen)
 ```
 
-The next step is to convert the image into a different format:
+The next step is to simplify the image. This is because there is a lot of unique colours in the pictures. Trying to quantise and summarise the picture in most case would result in only seeing different tones of the "same" colour. In this case we are interested in creating a summarised version of the images base on the pixels individual hex-values. Due to the hexidecimal system it can be around 16 millions possible colours! - Therefore we need to simplify. First by converting the image to the Magick-format, that has the function for reducing the number of unique colours to a number of your liking - here we choose 20. Before that however we also simplify the image by reducing it's width to 500
+
 ```{r}
 view_dosseringen %>% 
+  cimg2magick() %>% 
   image_resize("500") %>% 
-  image_quantize(max=20, colorspace="sRGB") %>% 
+  image_quantize(max=20,  colorspace = "sRGB")
+```
+Is the step above we also change the colorspace to [sRGB](https://en.wikipedia.org/wiki/SRGB), which is a standard of denoting RGB-values created by Microsoft and HP in collaboration in 1996 to use on computer screens and on the web. 
+
+The next step is to convert the image into the Cimg format used by the Imager-functions.  back:
+```{r}
+view_dosseringen %>% 
+  cimg2magick() %>% 
+  image_resize("500") %>% 
+  image_quantize(max=20,  colorspace = "sRGB") %>% 
   magick2cimg()
 ```
 
 It is a bit hard to see what difference this actually did. So let's save it to an element:
 ```{r}
 view_dosseringen %>% 
+  cimg2magick() %>% 
   image_resize("500") %>% 
-  image_quantize(max=20, colorspace="sRGB") %>% 
+  image_quantize(max=20, colorspace = "sRGB") %>% 
   magick2cimg() -> view_dosseringen_img
 ```
 
-This appears in the environment as a Large cimg consisting of 543000 elements. This is because all the pixels in our pictures is stored with the rgb-value. Remember that our picture right now is 500x362 pixels. So our picture consists of:
+This appears in the environment as a Large cimg consisting of 543000 elements. We can also examine it with the `dim()`-function
+
+```{r}
+dim(view_dosseringen_img)
+```
+
+And how large is the element? 
+```{r}
+length(view_dosseringen_img)
+```
+
+
+As mentioned 543000 elements. This is because all the pixels in our pictures is stored with the rgb-value. Remember that our picture right now is 500x362 pixels. So our picture consists
+of:
+
+
 ```{r}
 500*362
 ```
+
 181000 pixels! But each of these pixels will have three values with them, the red, green and blue value: 
 
 ```{r}
@@ -136,7 +156,10 @@ view_dosseringen_img %>%
   as.data.frame(wide = "c") %>% 
   rename(R = c.1, G = c.2, B = c.3)
 ```
-The next step is to convert the rgb-values to a hex-code in order to have a simpler representation of colors and one we can work with and visualise in R: 
+
+
+
+The next step is to convert the sRGB-values to a hex-code in order to have a simpler representation of colours and one we can work with and visualise in R: 
 
 ```{r}
 view_dosseringen_img %>% 
@@ -153,39 +176,64 @@ view_dosseringen_img %>%
   mutate(hex = rgb(R, G, B)) %>% 
   count(hex, sort = TRUE)
 ```
-But these hex codes are for machines and not human eyes! Lets visualise the dispersion of colors with colors!! First we save the above count to a new dataframe:
+But counts aren't really good for saying anything general. Let's calculate the frequency instead. This is fairly easy since we know that there is a total of 181000 pixels in the image of the painting:
+
 ```{r}
 view_dosseringen_img %>% 
   as.data.frame(wide = "c") %>% 
   rename(R = c.1, G = c.2, B = c.3) %>% 
   mutate(hex = rgb(R, G, B)) %>% 
-  count(hex, sort = TRUE) -> dosseringen_color_count
+  count(hex, sort = TRUE) %>% 
+  mutate(freq = n / (length(view_dosseringen_img)/3))
+```
+
+
+But these hex codes are for machines and not human eyes! Lets visualise the dispersion of colours with colours!! First we save the above count to a new dataframe:
+```{r}
+view_dosseringen_img %>% 
+  as.data.frame(wide = "c") %>% 
+  rename(R = c.1, G = c.2, B = c.3) %>% 
+  mutate(hex = rgb(R, G, B)) %>% 
+  count(hex, sort = TRUE) %>% 
+  mutate(freq = n / (length(view_dosseringen_img)/3)) -> dosseringen_color_freq
 ```
 
 
 
 ```{r}
-DosseringenColour <-  dosseringen_color_count %>% 
+DosseringenColour <-  dosseringen_color_freq %>% 
   pull(hex)
-names(DosseringenColour) <- dosseringen_color_count %>% 
+names(DosseringenColour) <- dosseringen_color_freq %>% 
   pull(hex)
 
 
-dosseringen_color_count %>%
+dosseringen_color_freq %>%
 mutate(hex = reorder(hex, n)) %>%
-ggplot(aes(x = hex, y = n, fill = hex)) +
+ggplot(aes(x = hex, y = freq, fill = hex)) +
   geom_col() + 
   scale_fill_manual(values = DosseringenColour) + 
   coord_flip() +
   labs(x = "Hex color",
-      y = "Count",
-      title = "Colour dispersion after resizing and image quantizing the painting\n*Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro*") + 
+      y = "Frequnecy",
+      title = "Colour dispersion in percentage after resizing and image quantizing the painting\n*Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro*") + 
   theme(axis.text.y = element_text(angle = 14, hjust = 1), legend.position="none")
 ```
 
+# Comparing images 
+
+To save our selves some time we wrapped the initial pictures processing steps into a single function. So below we define a function that:
+1. loads the picture
+2. convert it to the Magick-format 
+3. resizes it to 500 pixels in width
+4. reduces the number of unique colours in the picture to 10
+5. converts the format back to cimg
+6. changes the cimg format to a data frame with the coordinates of the pictures and the corresponding hex-value
+
+
 ```{r}
 PicToTible <- function(pic){
-  image_read(pic) %>% 
+   load.image(pic) %>% 
+    cimg2magick() %>% 
     image_resize("500") %>% 
     image_quantize(max = 10) %>% 
     magick2cimg() %>% 
@@ -195,25 +243,38 @@ PicToTible <- function(pic){
 }
 ```
 
+From AfkodKunsten.Rmd we know that second most displayed artworks is *Sjællandsk landskab. Åben egn i det nordlige Sjælland* by Johan Thomas Lundbye. Let's try  and compare the color pallettes of this artwork and our view from Dosseringen. First we filter out *Sjællands landskab* in order to get the url 
 
+```{r}
+golden_paintings %>% 
+  filter(title == "Sjællandsk landskab. Åben egn i det nordlige Sjælland")
+```
 
-
+The next step is to use our function from before and convert our picture into a tibble with the pixels, their coordinates and hex value  - to that we add the metadata: author and titel.:
 
 ```{r}
 PicToTible("https://iip-thumb.smk.dk/iiif/jp2/8g84mn026_KMSKMS402.tif.jp2/full/!1024,/0/default.jpg") %>% 
   mutate(creator = "Lundbye, Johan Thomas", title = "Sjællandsk landskab. Åben egn i det nordlige Sjælland") -> landscape
 ```
 
+Same procedure for *Udsigt fra Dosseringen ved Sortedamssøen* :
 ```{r}
 PicToTible("https://iip-thumb.smk.dk/iiif/jp2/KMSKMS359.tif.reconstructed.tif.jp2/full/!1024,/0/default.jpg") %>% 
   mutate(creator = "Købke, Christen", title = "Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro") -> dosseringen
 ```
-
+Since "landscape" and "dosseringen" have the exact same columns it is fairly easy to combine these two dataframes into one. This makes the comparison easier later. This achieved with the function `bind_rows()` and assigned to a new element:
 
 ```{r}
 comp_landscape_w_dossering <- bind_rows(dosseringen, landscape)
 ```
 
+The next step is to count the pixels on title and hex:
+
+```{r}
+comp_landscape_w_dossering %>% 
+  count(title, hex, sort = TRUE)
+```
+This gives us the most frequent colours within the two pictures - but we cant compare them! The problem is that we dont know the total amount of pixels within and thus #56503B from *Sjællands Landskab* takes the first place only because that there simply are more pixels in this picture. There fore we need to calculate the frequency, but before we do that we need to find the total amount of pixels within each picture.  This is done in the next step and we add this to a new dataframe: 
 ```{r}
 comp_landscape_w_dossering %>% 
   count(title, hex, sort = TRUE) %>% 
@@ -221,6 +282,7 @@ comp_landscape_w_dossering %>%
   summarise(total = sum(n)) -> total_colors
 ```
 
+The next step is to add these information to the data frame before and calculate the frequency: 
 ```{r}
 comp_landscape_w_dossering %>% 
   count(title, hex, sort = TRUE) %>% 
@@ -228,13 +290,19 @@ comp_landscape_w_dossering %>%
   mutate(freq = n / total) -> comp_freq
 ```
 
+Let's see what that actually did: 
+```{r}
+comp_freq
+```
+So just to do validate that we actually calculated the frequencies within each work, let's sum on the freq column. That should return 1 for each work:
 ```{r}
 comp_freq %>% 
   group_by(title) %>% 
   summarise(freq_sum = sum(freq))
 ```
+Quite right! 
 
-
+Next step is to visualise the two works color-palletes next to each other. We use the same method as before - more or less: 
 
 ```{r}
 library(forcats)
@@ -252,20 +320,15 @@ comp_freq %>%
   geom_col(show.legend = FALSE) +
   scale_fill_manual(values = CompColour) + 
   facet_wrap(~title, ncol = 2, scales = "free") +
-  labs(x = "freq", y = NULL) +
-  geom_curve(data = tibble(x = 1),
-             curvature = -.2,
-             arrow = arrow(length =
-                             unit(0.1,
-                                  "inches")),
-             x = 4550, xend = 5150,
-             y = 1.85, yend = 2.8,
-             )
+  labs(x = "freq", y = NULL)
 ```
-```{r}
-dosseringen_mgck <- image_read("https://iip-thumb.smk.dk/iiif/jp2/KMSKMS359.tif.reconstructed.tif.jp2/full/!1024,/0/default.jpg") %>% image_resize("300") %>% image_quantize(max = 10)
 
-landscape_mgck <- image_read("https://iip-thumb.smk.dk/iiif/jp2/KMSKMS402.tif.jp2/full/!1024,/0/default.jpg") %>%  image_resize("300") %>% image_quantize(max = 10)
+Let's see the two pictures: 
+
+```{r, include=FALSE}
+dosseringen_mgck <- load.image("https://iip-thumb.smk.dk/iiif/jp2/KMSKMS359.tif.reconstructed.tif.jp2/full/!1024,/0/default.jpg") %>% cimg2magick() %>% image_resize("300") %>% image_quantize(max = 10)
+
+landscape_mgck <- load.image("https://iip-thumb.smk.dk/iiif/jp2/8g84mn026_KMSKMS402.tif.jp2/full/!1024,/0/default.jpg") %>% cimg2magick() %>%  image_resize("300") %>% image_quantize(max = 10)
 
 img <- c(landscape_mgck, dosseringen_mgck)
 
@@ -273,6 +336,9 @@ img <- image_scale(img, "300x300")
 
 image_append(image_scale(img, "x300"))
 ```
+
+
+
 
 # Comparing entire ouevres 
 Who could be cool to compare: 
@@ -297,7 +363,8 @@ picture_mgk <- NULL
 ouevre <- NULL
 
 for (url in thumb_urls) {
-  picture_mgk <- image_read(url) %>% 
+  picture_mgk <- load.image(url) %>% 
+                    cimg2magick() %>% 
                     image_resize("500")
   
   ouevre <- append(ouevre, picture_mgk)
