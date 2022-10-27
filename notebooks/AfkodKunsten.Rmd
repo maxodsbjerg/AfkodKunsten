@@ -17,7 +17,7 @@ The the following example will be processed in the software programme R, offerin
 ```{r, message=FALSE}
 library(jsonlite)
 library(tidyverse)
-source("SMK_dataframe.R")
+source("../sources/SMK_dataframe.R")
 ```
 
 This example shows how to extract all the digitally registered paintings within SMK from the golden age period(1800 to 1850) that has an image which is in public domain. The data is delivered in JSON-format, which is a way of storing and sending data as text. JSON-data can be parsed into R using the fromJSON function. The data is parsed as a large list-structure, where we right away extracts the exact list that contains the art works:
@@ -95,7 +95,7 @@ golden_paintings %>%
 golden_paintings_exh
 ```
 
-We observe that this new dataframe have 1582 rows. 
+We observe that this new dataframe have 1583 rows. 
 
 Since the data now has a format where each instance of an art work on display has its own row, we can now start asking questions about the exhibitioning of the period.
 
@@ -107,14 +107,14 @@ Because the art pieces appears in the data for each of the times it has been on 
 
 ```{r}
 golden_paintings_exh %>% 
-  count(title, creator_1, sort = TRUE)
+  count(title, creator_1, frontend_url, sort = TRUE)
 ```
 We see that our work from before, *Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro*, is on a first place!. 
 Let's visualise this result in order to gain a visual representation instead:
 
 ```{r, message=FALSE}
 golden_paintings_exh %>% 
-  count(title, creator_1, sort = TRUE) %>% 
+  count(title, creator_1, frontend_url, sort = TRUE) %>% 
   slice_max(n, n = 5) %>%
   mutate(title = reorder(title, n)) %>% 
   ggplot(aes(x = title, y = n)) +

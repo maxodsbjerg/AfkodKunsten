@@ -20,7 +20,7 @@ library(magick)
 library(imager)
 library(colorfindr)
 library(scales)
-source("SMK_dataframe.R")
+source("../sources/SMK_dataframe.R")
 ```
 
 
@@ -64,7 +64,7 @@ The color code for green could in the two formats would be like this:
 >Hex:00ff00
 
 In a less generic example we demonstrate both pixels and color code in the visualisation beneath of the painting *Interiør med en ung pige, der fletter sit hår* by Anna Ancher:
-![Pixels and their colorcodes](a_ancher_girl_interior_pixel_color.png)
+![Pixels and their colorcodes](../graphics/a_ancher_girl_interior_pixel_color.png)
 
 So to sum up we now know the following about digital pictures: It consist of pixels that each stores numerical information of their colours. Next up we are going to extract the colours from a pictures and see which colours are predominant within a picture. We will both be handling RGB-decimal and hex colours codes. 
 
