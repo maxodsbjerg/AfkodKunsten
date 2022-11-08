@@ -3,6 +3,12 @@ SMK_downloader <- function(dataframe){
   outputdir <- "../data/images/"
   print(getwd())
   
+  if (!dir.exists("../data/")){
+    dir.create("../data/")
+  } else {
+    print("Dir already exists!")
+  }
+  
   if (!dir.exists("../data/images/")){
     dir.create("../data/images/")
   } else {
