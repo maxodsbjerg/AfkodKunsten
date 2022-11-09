@@ -127,7 +127,8 @@ most_exh %>%
   ) +
   theme_bw(15) +
   labs(
-    title    = "Most displayed golden age paintings\nfrom SMK",
+    title    = "SMK-owned works: Most displayed golden age\npaintings from SMK",
+    subtitle = "Based on metadata from SMK Open API",
     x = "Title",
     y = "Count of times on exhibition"
   ) +
@@ -168,7 +169,10 @@ most_exh_female %>%
   ) +
   theme_bw(15) +
   labs(
-    title    = "Most displayed golden age paintings\n by female artists from SMK"
+    title    = "SMK-owned works: Most displayed golden age paintings\nby female painters",
+    subtitle = "Based on metadata from SMK Open API",
+    x = "Title",
+    y = "Count of times on exhibition"
   ) +
   theme(legend.position = 'none') +
   theme(axis.text.x = element_text(angle = 30, hjust = 1))
@@ -176,5 +180,4 @@ most_exh_female %>%
 ```{r}
 ggsave("../graphics/number_of_exhibitions_female.png", width = 28, height = 20, units = "cm", bg = "white")
 ```
-
 
