@@ -26,5 +26,3 @@ These are some of the questions we discuss throughout or workshop. Throughout th
 ### R learning material:
 * [R for Data Science](https://r4ds.had.co.nz)
 * [Text Mining with R](https://www.tidytextmining.com)
-
-
