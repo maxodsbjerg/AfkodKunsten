@@ -16,7 +16,7 @@ These are some of the questions we discuss throughout or workshop. Throughout th
 
 ## Links to resources for in-class and future reference
 * [Powerpoint for workshop - Danish](https://github.com/maxodsbjerg/AfkodKunsten/blob/main/powerpoints/Afkod%20Kunsten%20PP.pdf)
-* [Powerpoint for workshop - English](https://github.com/maxodsbjerg/AfkodKunsten/blob/main/Decode%20Art%20PP.pdf)
+* [Powerpoint for workshop - English](https://github.com/maxodsbjerg/AfkodKunsten/blob/main/powerpoints/Decode%20Art%20PP.pdf)
 * [Link to workshop survey](https://www.survey-xact.dk/LinkCollector?key=UADDX2NWLPCN)
 * [Dall.E2](https://openai.com/dall-e-2/) 
 * [Link to podcast - How museums can deepen engagement with audiences?](https://www.theheritagelab.in/museum-digital-audience-engagement/)
