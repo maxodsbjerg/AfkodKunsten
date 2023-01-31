@@ -6,7 +6,6 @@ output: html_document
 ---
 
 ```{r}
-#remotes::install_github("coolbutuseless/ggpattern")
 library(ggpattern)
 library(tidyverse)
 library(jsonlite)
@@ -14,7 +13,6 @@ source("../sources/SMK_dataframe.R")
 source("../sources/SMK_downloader_thumbnails.R")
 library(imager)
 library(magick)
-remotes::install_github("ropensci/magick")
 ```
 
 This example shows how to extract all the digitally registered paintings within SMK from the golden age period(1800 to 1850) that has an image which is in public domain. The data is delivered in JSON-format, which is a way of storing and sending data as text. JSON-data can be parsed into R using the fromJSON function. The data is parsed as a large list-structure, where we right away extracts the exact list that contains the art works:
