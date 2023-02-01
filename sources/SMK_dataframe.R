@@ -22,5 +22,5 @@ SMK_dataframe <- function(dataframe) {
     mutate(image_thumbnail = image_thumbnail) %>% 
     mutate(saturation = saturation) %>%
     mutate(suggested_bg_color = suggested_bg_color) %>%
-    select(id, title,art_type, frontend_url, creator_1, creator_1_gender, creator_2, title_notes, production_start, production_end,image_native, image_thumbnail, saturation,suggested_bg_color, has_image, exhibitions, public_domain, rights)
+    select(id, title,art_type, frontend_url, creator_1, creator_1_gender, creator_2, title_notes, production_start, production_end, acquisition_date_precision, image_native, image_thumbnail, saturation,suggested_bg_color, has_image, exhibitions, public_domain, rights)
 }
