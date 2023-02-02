@@ -78,8 +78,8 @@ golden_paintings %>%
 
 So what we see here is that some of these rows has the value "<NULL>", which means the art work in question has not registered as been on exhibition. However a lot of the art works have been on exhibition. For example we see 7, *Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro* by Christen Købke has a data frame [16 x 4] in the art works row under exhibitions. This means that within this row there is a data frame consisting of 16 rows of 4 columns. Lets unwrap this row and see: 
 ```{r}
-# 7 is the row number, exhibitions is the 16th column and [[1]] is for diving into the data frame
-golden_paintings[7, 16][[1]]
+# 7 is the row number, exhibitions is the 17th column and [[1]] is for diving into the data frame
+golden_paintings[7, 17][[1]]
 ```
 So what does this mean? It means that *Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro* has been on exhibition sixteen times and we get various information such as the name of the exhibition, when it began and where it was ("Naturens spegel / The Mirror of Nature/Verden som landskab", were shown in several venues). 
 
