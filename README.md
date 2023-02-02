@@ -8,6 +8,7 @@ Art and culture is increasingly digital - so must our methods and analytical app
 * What is a pixel and an API?
 * What are the most popular colors used in paintings in the collections of the Danish National Gallery from 1800s?
 * Which artworks have been exhibited the most and where? 
+* [Where in the world has SMK's Eckersberg paintings been on display?](https://library.au.dk/fileadmin/www.nobel.bibliotek.au.dk/LibLab/files/r-markdown/eckersberg.html)
 ![](./graphics/number_of_exhibitions_male.png)  
 These are some of the questions we discuss throughout or workshop. Throughout the course you will be introduced to digital collections as a cultural phenomenon, as well as practical ressources and methods for how you can use data- and metadata analysis in your work with art and collections.   
 
