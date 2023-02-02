@@ -86,3 +86,5 @@ golden_paintings %>%
   geom_col(aes(fill = creator_1_gender))
 ```
 
+http://labs.statsbiblioteket.dk/smurf?q=guldalder*
+
