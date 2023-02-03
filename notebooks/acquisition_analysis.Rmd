@@ -54,29 +54,17 @@ SMK_dataframe(golden_paintings) -> golden_paintings
 
 # Acquisition analysis
 
+The data comes with information on when a piece of art work was acquired by SMK. This infomration stores the date of the acquisition. In the following analysis we create a new column, which just holds the year of acquisition. This makes it posibel to count this year column and then visualise the result in order to see the dispersion of acquisition of golden age painting on years:
 
 ```{r}
 golden_paintings %>% 
-  filter(creator_1_gender == "MALE") %>% 
   mutate(year = year(acquisition_date_precision)) %>%
   count(year) %>% 
   ggplot(aes(year, n)) +
   geom_col()
 ```
 
-
-
-```{r}
-golden_paintings %>% 
-  filter(creator_1_gender == "FEMALE") %>% 
-  mutate(year = year(acquisition_date_precision)) %>%
-  count(year) %>% 
-  ggplot(aes(year, n)) +
-  geom_col()
-```
-
-
-
+Since the data also holds data on the gender of the creators it is possible to create the same visualisation, but taking into account the gender of the creator of the painting:
 
 ```{r}
 golden_paintings %>% 
