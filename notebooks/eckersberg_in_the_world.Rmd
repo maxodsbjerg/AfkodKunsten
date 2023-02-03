@@ -1,0 +1,51 @@
+---
+title: "eckersberg_paintings_in_the_world"
+author: "Max Odsbjerg Pedersen"
+date: "2023-02-02"
+output: html_document
+---
+
+The focal point of this example is to proces an extract of the collection data from the National Gallery of Denmark. This collection is comprised of the museum’s digitally registered art works.
+
+Our extract is delivered through SMK’s Application Programming Interface(API). An API is in brief a way to let software talk to eachother - in this case the API let’s R on my computer get access to SMK’s digitally registered art works. The API also lets us specify very precisely, what data we are interested in.
+
+Read more about the SMK-API here: https://www.smk.dk/article/smk-api/
+
+Read the more technical aspects af the SMK-API here: https://api.smk.dk/api/v1/docs#/
+
+The the following example will be processed in the software programme R, offering various methods for statistical analysis and graphic representation of the results. In R, one works with packages each adding numerous functionalities to the core of R-functions. The first step of the project is to load the relavant packages into R:
+
+```{r, message=FALSE}
+library(jsonlite)
+library(tidyverse)
+library(lubridate)
+source("../sources/SMK_dataframe.R")
+```
+
+This example shows how to extract all the digitally registered works within SMK with the painter C. W. Eckersberg noted as creator. The data is delivered in JSON-format, which is a way of storing and sending data as text. JSON-data can be parsed into R using the fromJSON function. The data is parsed as a large list-structure, where we right away extracts the exact list that contains the art works with ‘Eckersberg’ as the creator:
+```{r}
+creator_eckersberg <- fromJSON("https://api.smk.dk/api/v1/art/search/?keys=*&filters=%5Bcreator%3AEckersberg%2C%20C.W.%5D&offset=0&rows=1000")
+
+creator_eckersberg <- creator_eckersberg$items
+```
+
+For further explanation of the JSON format see - https://www.w3schools.com/js/js_json_intro.asp
+
+Lets take a look at the first six data entries after we extracted the list from the initial response:
+```{r}
+creator_eckersberg %>% 
+  head()
+```
+By shuffling through the columns (use the little black arrow at the top of the data frame) we see that some of the rows contains data frames and lists within themselves - this dataframe is a complex one.\
+This is not the way I like to work - I like to have my data tidy and use the functions put at disposal in the R-library `tidyverse` . The tidy format is defined as:
+
+> In brief, when your data is tidy, each column is a variable, and each row is an observation. Tidy data is important because the consistent structure lets you focus your struggle on questions about the data, not fighting to get the data into the right form for different functions.
+
+[*R for Data Science*](https://r4ds.had.co.nz/introduction.html)
+
+# Tidying the data
+Since handling this complex dataframe would be the center of several workshops it self we have decide to give you a prewritten function that turns our 996 observation of 70 variable complex dataframe into a simple one of 996 observations of 15 variables. This in order to keep the focus of this workshop to introduce a way of interacting with digital collection. Just notice that we simplify the data alot in this step and that your idea for analysis probably is possible with a different dataprocessing. But for now we use the predefined function `SMK_dataframe()`
+
+```{r}
+SMK_dataframe(creator_eckersberg) -> creator_eckersberg
+```
