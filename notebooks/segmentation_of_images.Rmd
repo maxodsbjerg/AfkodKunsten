@@ -1,0 +1,244 @@
+---
+title: "Separating foreground from background"
+author: "Max Odsbjerg Pedersen"
+date: '2022-05-10'
+output: html_document
+---
+```{r, message=FALSE}
+library(jsonlite)
+library(tidyverse)
+library(wesanderson)
+library(magick)
+library(imager)
+library(colorfindr)
+library(scales)
+source("sources/SMK_dataframe.R")
+```
+
+
+```{r}
+golden_paintings <- fromJSON("https://api.smk.dk/api/v1/art/search/?keys=*&range=[production_dates_start%3A{1800-01-01T00%3A00%3A00.000Z%3B1849-12-31T00%3A00%3A00.000Z}]&filters=[has_image:true],[object_names:maleri],[public_domain:true]&offset=0&rows=2000")
+
+golden_paintings$items -> golden_paintings
+```
+
+For further explanation of the JSON format see - https://www.w3schools.com/js/js_json_intro.asp
+
+Lets take a look at the first six data entries after we extracted the list from the initial response:
+```{r}
+golden_paintings %>% 
+  head()
+```
+By shuffling through the columns (use the little black arrow at the top of the data frame) we see that some of the rows contains data frames and lists within themselves - this dataframe is a complex one.\
+This is not the way I like to work - I like to have my data tidy and use the functions put at disposal in the R-library `tidyverse` . The tidy format is defined as:
+
+> In brief, when your data is tidy, each column is a variable, and each row is an observation. Tidy data is important because the consistent structure lets you focus your struggle on questions about the data, not fighting to get the data into the right form for different functions.
+
+[*R for Data Science*](https://r4ds.had.co.nz/introduction.html)
+
+# Tidying the data
+Since handling this complex dataframe would be the center of several workshops it self we have decide to give you a prewritten function that turns our 996 observation of 70 variable complex dataframe into a simple one of 996 observations of 15 variables. This in order to keep the focus of this workshop to introduce a way of interacting with digital collection. Just notice that we simplify the data alot in this step and that your idea for analysis probably is possibel with a different dataprocessing. But for now we use the predefined function `SMK_dataframe()`
+
+```{r}
+SMK_dataframe(golden_paintings) -> golden_paintings
+```
+
+
+# Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro	
+
+We know from AfkodKunsten.Rmd that *Udsigt fra Dosseringen ved Sortedamssøen mod Nørrebro* by Christen Købke is SMK's most exhibitioned golden age painting. So let's use this as a case. First we need to find the image thumbnail:
+```{r}
+golden_paintings %>% 
+  filter(str_detect(title, "Sjællandsk landskab. Å"))
+```
+
+
+```{r}
+im <- load.image("https://iip-thumb.smk.dk/iiif/jp2/KMSKMS402.tif.jp2/full/!1024,/0/default.jpg")
+```
+
+```{r}
+plot(im)
+```
+
+```{r}
+grad <- imgradient(im, "xy")
+
+str(grad)
+```
+
+```{r}
+layout(t(1:2))
+plot(grad$x,main="Gradient along x")
+plot(grad$y,main="Gradient along y")
+```
+
+```{r}
+grad.sq <- grad %>% map_il(~ .^2)
+layout(t(1:2))
+plot(sqrt(grad.sq$x),main="Gradient magnitude along x")
+plot(sqrt(grad.sq$y),main="Gradient magnitude along y")
+```
+
+```{r}
+grad.sq <- add(grad.sq) #Add (d/dx)^2 and (d/dy)^2
+plot(sqrt(grad.sq))
+```
+
+```{r}
+edges <- imsplit(grad.sq,"c") %>% add
+plot(sqrt(edges),main="Detected edges")
+```
+
+```{r}
+detect.edges <- function(im,sigma=1)
+    {
+        isoblur(im,sigma) %>% imgradient("xy") %>% enorm %>% imsplit("c") %>% add
+    }
+
+edges <- detect.edges(im,2) %>% sqrt 
+plot(edges)
+```
+
+```{r}
+pmap <- 1/(1+edges) #Priority inv. proportional to gradient magnitude
+plot(pmap,main="Priority map") #Nice metal plate effect! 
+```
+
+```{r}
+seeds <- imfill(dim=dim(pmap))
+```
+
+
+
+```{r}
+seeds[800,300,1,1] <- 1 #background pixel
+seeds[800,600,1,1] <- 2
+```
+
+
+```{r}
+wt <- watershed(seeds,pmap)
+plot(wt,main="Watershed segmentation")
+```
+
+```{r}
+mask <- add.colour(wt) #We copy along the three colour channels
+layout(t(1:2))
+plot(im*(mask==1),main="Background")
+plot(im*(mask==2),main="Foreground")
+```
+
+# Find pixels in the background 
+
+```{r}
+im %>% 
+  grayscale() -> im_gray
+
+px <- im_gray > .8
+  
+plot(px)
+```
+
+
+```{r}
+colorise(im,px,"red",alpha=.5) %>% plot
+```
+```{r}
+golden_paintings %>% 
+  filter(str_detect(title, "En ung kunstner"))
+```
+
+```{r}
+im_1 <- load.image("https://iip-thumb.smk.dk/iiif/jp2/KMS280.tif.jp2/full/!1024,/0/default.jpg")
+```
+```{r}
+plot(im_1)
+```
+
+
+```{r}
+im_1 %>% 
+  grayscale() -> im_1_gray
+
+px_1 <- im_1_gray > .8
+```
+
+```{r}
+colorise(im_1,px_1,"red",alpha=.5) %>% plot
+```
+
+
+```{r}
+grad_1 <- imgradient(im_1, "xy")
+```
+
+```{r}
+layout(t(1:2))
+plot(grad_1$x,main="Gradient along x")
+plot(grad_1$y,main="Gradient along y")
+```
+
+```{r}
+grad_1.sq <- grad_1 %>% map_il(~ .^2)
+layout(t(1:2))
+plot(sqrt(grad_1.sq$x),main="Gradient magnitude along x")
+plot(sqrt(grad_1.sq$y),main="Gradient magnitude along y")
+```
+
+```{r}
+grad_1.sq <- add(grad_1.sq) #Add (d/dx)^2 and (d/dy)^2
+plot(sqrt(grad_1.sq))
+```
+
+```{r}
+edges_1 <- imsplit(grad_1.sq,"c") %>% add
+plot(sqrt(edges_1),main="Detected edges")
+```
+
+```{r}
+detect.edges <- function(im,sigma=1)
+    {
+        isoblur(im,sigma) %>% imgradient("xy") %>% enorm %>% imsplit("c") %>% add
+    }
+
+edges_1 <- detect.edges(im_1,2) %>% sqrt 
+plot(edges_1)
+```
+
+```{r}
+pmap_1 <- 1/(1+edges_1) #Priority inv. proportional to gradient magnitude
+plot(pmap_1,main="Priority map") #Nice metal plate effect! 
+```
+
+```{r}
+seeds <- imfill(dim=dim(pmap_1))
+```
+
+
+
+```{r}
+seeds[750,40,1,1] <- 1 #background pixel
+```
+
+
+```{r}
+wt <- watershed(seeds,pmap_1)
+plot(wt,main="Watershed segmentation")
+```
+
+```{r}
+mask <- add.colour(wt) #We copy along the three colour channels
+layout(t(1:2))
+plot(im_1*(mask==1),main="Background")
+plot(im_1*(mask==2),main="Foreground")
+```
+
+
+
+# Anna Ancher
+```{r}
+golden_paintings %>% 
+  filter(str_detect(title, "Interiør"))
+```
+
