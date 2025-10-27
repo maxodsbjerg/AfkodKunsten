@@ -18,6 +18,7 @@ The the following example will be processed in the software programme R, offerin
 library(jsonlite)
 library(tidyverse)
 library(lubridate)
+library(scales)
 source("../sources/SMK_dataframe.R")
 ```
 
@@ -54,24 +55,82 @@ SMK_dataframe(golden_paintings) -> golden_paintings
 
 # Acquisition analysis
 
-The data comes with information on when a piece of art work was acquired by SMK. This infomration stores the date of the acquisition. In the following analysis we create a new column, which just holds the year of acquisition. This makes it posibel to count this year column and then visualise the result in order to see the dispersion of acquisition of golden age painting on years:
+## Dispersion on Gender
+The data comes with information on the gender of the author so lets see the dispersion
 
 ```{r}
-golden_paintings %>% 
-  mutate(year = year(acquisition_date_precision)) %>%
-  count(year) %>% 
-  ggplot(aes(year, n)) +
-  geom_col()
+golden_paintings %>%
+  count(creator_1_gender, sort = TRUE) %>%
+  mutate(pct_gender = n / nrow(golden_paintings)) %>%
+  ggplot(aes(x = reorder(creator_1_gender, pct_gender), y = pct_gender)) +
+  geom_col(fill = "darkred") +
+  geom_text(
+    aes(label = paste0(" ",n, "\n(", percent(pct_gender, accuracy = 0.1), ")")),
+    hjust = -0.1,        # moves labels slightly outside the bar
+    size = 3,
+  ) +
+  coord_flip() +
+  labs(
+    title = "Distribution of Paintings by  creator_1_gender",
+    subtitle = paste("Total amount of paintings:", nrow(golden_paintings)),
+    x = "Gender",
+    y = "Percentage of Paintings"
+  ) +
+  scale_y_continuous(labels = percent_format(), expand = expansion(mult = c(0, 0.1))) +
+  theme_minimal()
+
+```
+
+
+
+The data comes with information on when a piece of art work was acquired by SMK. This information stores the date of the acquisition. In the following analysis we create a new column, which just holds the year of acquisition. This makes it possibel to count this year column and then visualise the result in order to see the dispersion of acquisition of golden age painting on years:
+
+```{r}
+golden_paintings %>%
+  mutate(
+    year = year(acquisition_date_precision),
+    decade = floor(year / 10) * 10
+  ) %>%
+  count(decade) %>%
+  drop_na(decade) %>% 
+  ggplot(aes(x = decade, y = n)) +
+  geom_col(fill = "darkred") +
+  scale_x_continuous(breaks = seq(1800,2000, by = 10)) +  # use only the decades present
+  labs(
+    title = "Paintings Acquired per Decade",
+    x = "Decade",
+    y = "Number of Paintings"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
 ```
 
 Since the data also holds data on the gender of the creators it is possible to create the same visualisation, but taking into account the gender of the creator of the painting:
 
 ```{r}
-golden_paintings %>% 
-  mutate(year = year(acquisition_date_precision)) %>%
-  count(year, creator_1_gender) %>% 
-  ggplot(aes(year, n)) +
-  geom_col(aes(fill = creator_1_gender))
+golden_paintings %>%
+  mutate(
+    year = year(acquisition_date_precision),
+    decade = floor(year / 10) * 10
+  ) %>%
+  drop_na(decade, creator_1_gender) %>%   # remove NAs in decade or gender
+  count(decade, creator_1_gender) %>%
+  ggplot(aes(x = decade, y = n, fill = creator_1_gender)) +
+  geom_col() +          # side-by-side bars
+  scale_x_continuous(breaks = seq(1800, 2000, by = 10)) +
+  labs(
+    title = "Paintings Acquired per Decade by Creator Gender",
+    x = "Decade",
+    y = "Number of Paintings",
+    fill = "Creator Gender"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
 ```
 
 http://labs.statsbiblioteket.dk/smurf?q=guldalder*
